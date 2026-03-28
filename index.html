@@ -412,7 +412,6 @@ function showHint() {
   state.wrong++;
   document.getElementById('liveWrong').textContent = state.wrong;
 
-  const topic = DATA.topics[state.topicIdx];
   if(state.qIdx + 1 < topic.questions.length) {
     document.getElementById('nextBtn').style.display = 'inline-block';
     document.getElementById('nextBtn').textContent = 'Sonraki →';

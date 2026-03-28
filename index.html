@@ -164,12 +164,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
     <div class="q-num" id="qNum"></div>
     <div class="q-text" id="qText"></div>
     <div class="choices" id="choices"></div>
-    <div class="hint-wrap">
-      <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 İpucu</button>
-      <div class="hint-box" id="hintBox"></div>
-    </div>
+    <div class="next-wrap"><button class="next-btn" id="nextBtn" style="display:none" onclick="nextQuestion()">Sonraki →</button></div>
   </div>
-  <div class="next-wrap"><button class="next-btn" id="nextBtn" style="display:none" onclick="nextQuestion()">Sonraki →</button></div>
+  <div class="hint-wrap">
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 İpucu</button>
+    <div class="hint-box" id="hintBox"></div>
+  </div>
 </div>
 
 <div class="result" id="resultView">
@@ -397,21 +397,12 @@ function showHint() {
   document.getElementById('hintBox').innerHTML = hintMsg;
   document.getElementById('hintBox').style.display = 'block';
 
-  // Eliminate 2 wrong choices visually
-  const letters = ['a','b','c','d','e'];
-  const wrongLetters = letters.filter(l => l in q.choices && l.toUpperCase() !== correctLetter);
-  // Shuffle and pick 2
-  for(let i = wrongLetters.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [wrongLetters[i], wrongLetters[j]] = [wrongLetters[j], wrongLetters[i]];
-  }
-  const toEliminate = wrongLetters.slice(0, 2);
-
+  // Highlight correct answer green
   const allBtns = document.querySelectorAll('.choice-btn');
   allBtns.forEach(b => {
-    const letter = b.querySelector('.choice-letter').textContent.toLowerCase();
-    if(toEliminate.includes(letter)) {
-      b.classList.add('eliminated');
+    const letter = b.querySelector('.choice-letter').textContent;
+    if(letter === correctLetter) {
+      b.classList.add('correct');
     }
   });
 }

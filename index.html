@@ -113,6 +113,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 .score-badge .s-correct{color:var(--green)}
 .score-badge .s-wrong{color:var(--red)}
 
+/* ─── HINT ─── */
+.hint-wrap{margin-top:16px;text-align:center}
+.hint-btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;
+  border-radius:12px;padding:12px 28px;font-size:15px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .25s;display:inline-flex;align-items:center;gap:8px;
+  box-shadow:0 4px 15px rgba(245,158,11,.25)}
+.hint-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.35)}
+.hint-btn:active{transform:scale(.97)}
+.hint-btn.used{opacity:.5;cursor:default;pointer-events:none}
+.hint-box{margin-top:14px;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(217,119,6,.05));
+  border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 18px;
+  color:#fbbf24;font-size:14px;line-height:1.6;display:none;animation:hintFade .4s ease;
+  backdrop-filter:blur(8px);text-align:left}
+.hint-box .hint-icon{font-size:18px;margin-right:6px}
+.hint-box strong{color:#fde68a}
+@keyframes hintFade{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.choice-btn.eliminated{opacity:.35;text-decoration:line-through;pointer-events:none}
+
 /* ─── RESPONSIVE ─── */
 @media(max-width:480px){
   .header h1{font-size:15px}
@@ -146,6 +164,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
     <div class="q-num" id="qNum"></div>
     <div class="q-text" id="qText"></div>
     <div class="choices" id="choices"></div>
+    <div class="hint-wrap">
+      <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 İpucu</button>
+      <div class="hint-box" id="hintBox"></div>
+    </div>
   </div>
   <div class="next-wrap"><button class="next-btn" id="nextBtn" style="display:none" onclick="nextQuestion()">Sonraki →</button></div>
 </div>
@@ -251,6 +273,10 @@ function renderQuestion() {
   document.getElementById('qNum').textContent = `Soru ${q.qn}`;
   document.getElementById('qText').textContent = q.text;
   document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('hintBtn').classList.remove('used');
+  document.getElementById('hintBtn').style.display = 'inline-flex';
+  document.getElementById('hintBox').style.display = 'none';
+  document.getElementById('hintBox').innerHTML = '';
   document.getElementById('liveCorrect').textContent = state.correct;
   document.getElementById('liveWrong').textContent = state.wrong;
 
@@ -346,6 +372,48 @@ function showResult() {
   const barFill = document.getElementById('resultBarFill');
   barFill.style.background = barColor;
   setTimeout(() => barFill.style.width = pct + '%', 100);
+}
+
+function showHint() {
+  if(state.answered) return;
+  const hintBtn = document.getElementById('hintBtn');
+  if(hintBtn.classList.contains('used')) return;
+  hintBtn.classList.add('used');
+
+  const topic = DATA.topics[state.topicIdx];
+  const q = topic.questions[state.qIdx];
+  const correctLetter = q.answer;
+  const correctText = q.choices[correctLetter.toLowerCase()] || '';
+
+  // Build hint text
+  let hintMsg = `<span class="hint-icon">💡</span> `;
+  hintMsg += `Doğru cevap <strong>${correctLetter}</strong> harfi ile başlıyor.`;
+
+  if(correctText.length > 3) {
+    const preview = correctText.substring(0, Math.min(correctText.length, Math.max(15, Math.floor(correctText.length * 0.3))));
+    hintMsg += `<br><span class="hint-icon">🔎</span> Cevabın başlangıcı: "<strong>${escHtml(preview)}...</strong>"`;
+  }
+
+  document.getElementById('hintBox').innerHTML = hintMsg;
+  document.getElementById('hintBox').style.display = 'block';
+
+  // Eliminate 2 wrong choices visually
+  const letters = ['a','b','c','d','e'];
+  const wrongLetters = letters.filter(l => l in q.choices && l.toUpperCase() !== correctLetter);
+  // Shuffle and pick 2
+  for(let i = wrongLetters.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [wrongLetters[i], wrongLetters[j]] = [wrongLetters[j], wrongLetters[i]];
+  }
+  const toEliminate = wrongLetters.slice(0, 2);
+
+  const allBtns = document.querySelectorAll('.choice-btn');
+  allBtns.forEach(b => {
+    const letter = b.querySelector('.choice-letter').textContent.toLowerCase();
+    if(toEliminate.includes(letter)) {
+      b.classList.add('eliminated');
+    }
+  });
 }
 
 // Init

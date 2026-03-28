@@ -400,11 +400,26 @@ function showHint() {
   // Highlight correct answer green
   const allBtns = document.querySelectorAll('.choice-btn');
   allBtns.forEach(b => {
+    b.classList.add('disabled');
     const letter = b.querySelector('.choice-letter').textContent;
     if(letter === correctLetter) {
       b.classList.add('correct');
     }
   });
+
+  // Mark as answered (counts as wrong) and show next button
+  state.answered = true;
+  state.wrong++;
+  document.getElementById('liveWrong').textContent = state.wrong;
+
+  const topic = DATA.topics[state.topicIdx];
+  if(state.qIdx + 1 < topic.questions.length) {
+    document.getElementById('nextBtn').style.display = 'inline-block';
+    document.getElementById('nextBtn').textContent = 'Sonraki →';
+  } else {
+    document.getElementById('nextBtn').style.display = 'inline-block';
+    document.getElementById('nextBtn').textContent = 'Sonuçları Gör';
+  }
 }
 
 // Init
